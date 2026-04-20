@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Script Teleprompter</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        #toolbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1a1a1a;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.8);
+            z-index: 100;
+            flex-wrap: wrap;
+            border-top: 1px solid #333;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #2a2a2a;
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+
+        label {
+            font-size: 14px;
+            color: #eeeeee;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 10px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #startBtn { background-color: #22c55e; color: white; }
+        #stopBtn { background-color: #ef4444; color: white; }
+        #editBtn { background-color: #3b82f6; color: white; }
+        
+        button:hover { filter: brightness(1.1); transform: scale(1.05); }
+        button:active { transform: scale(0.95); }
+
+        input[type="color"] {
+            border: none;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            padding: 0;
+            background: none;
+            border-radius: 5px;
+        }
+
+        input[type="range"] {
+            cursor: pointer;
+            width: 120px;
+        }
+
+        #text-container {
+            padding: 100px 15% 400px 15%;
+            font-size: 64px; /* default size */
+            line-height: 1.8;
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .script-paragraph {
+            margin-bottom: 60px;
+        }
+
+        .mirror-mode {
+            transform: scaleX(-1);
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #888;
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111;
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+
+        /* Edit Modal CSS */
+        #editModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+        .modal-content h2 { margin: 0; color: #fff; }
+        #scriptInput {
+            width: 100%;
+            height: 400px;
+            background: #2a2a2a;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            line-height: 1.6;
+            box-sizing: border-box;
+        }
+        .modal-actions { display: flex; gap: 15px; justify-content: flex-end; }
+        #saveBtn { background-color: #22c55e; color: white; }
+        #cancelBtn { background-color: #555; color: white; }
+    </style>
+</head>
+<body>
+
+    <div id="text-container">
+        <!-- Default text that loads if nothing is saved in local storage -->
+        <div class="script-paragraph">ඔසප් කාලයට දැනෙන ඒ දරාගන්න බැරි වේදනාව, සාමාන්‍ය දෙයක් නෙමෙයි කියලා ඔබ දන්නවද? අද අපි කතා කරන්නේ ගොඩක් කාන්තාවන් නිහඬව දුක් විඳින රෝගයක් ගැන. ඒ තමයි එන්ඩොමෙට්‍රියෝසිස් (Endometriosis). අද අපි මේකෙ වෛද්‍ය විද්‍යාත්මක පසුබිම, නවතම පර්යේෂණ සහ ඇත්තටම ඇඟ ඇතුලේ මොකද වෙන්නේ කියන එක scientific විදිහටම කතා කරමු.</div>
+        <div class="script-paragraph">වෛද්‍යවරයෙක් විදිහට මම නිතරම දකින දෙයක් තමයි, ගොඩක් අය මේ වේදනාව සාමාන්‍යයි කියලා හිතාගෙන ඉන්නවා. සරලවම කිව්වොත්, අපේ ගර්භාෂයේ ඇතුල් බිත්තිය, ඒ කියන්නේ 'එන්ඩොමෙට්‍රියම්' (Endometrium) එකට සමාන පටක, ගර්භාෂයෙන් පිටත තැන් වල — ඒ කියන්නේ ඩිම්බ කෝෂ (Ovaries), පැලෝපීය නාල, වගේ උදරයේ අවයව වටා වර්ධනය වෙන එකට තමයි මේ නම කියන්නේ. සාමාන්‍යයෙන් ඔසප් කාලයේදී ගර්භාෂයේ ඇතුල් බිත්තිය ගැලවිලා රුධිරය පිටවෙනවා වගේම, අර පිටතින් තියෙන පටකත් රුධිරය පිටකරන්න උත්සාහ කරනවා. ඉතින් ඇඟ ඇතුලෙම ලේ එකතු වෙලා, තුවාල වෙලා, ලොකු දැවිල්ලක් එක්ක අසාමාන්‍ය වේදනාවක් ඇති කරනවා.</div>
+    </div>
+
+    <div id="toolbar">
+        <div class="help-text">Spacebar: Play/Pause | Left/Right Arrows: Adjust Speed</div>
+        
+        <button id="editBtn">✏️ Edit Script</button>
+        <button id="startBtn">▶ Start</button>
+        <button id="stopBtn">⏸ Pause</button>
+        
+        <div class="control-group">
+            <label for="colorPicker">Color:</label>
+            <input type="color" id="colorPicker" value="#ffffff">
+        </div>
+
+        <div class="control-group">
+            <label for="sizeSlider">Size (<span id="sizeVal">64</span>px):</label>
+            <input type="range" id="sizeSlider" min="30" max="150" value="64">
+        </div>
+
+        <div class="control-group">
+            <label for="speedSlider">Speed (<span id="speedVal">5</span>):</label>
+            <input type="range" id="speedSlider" min="1" max="30" value="5">
+        </div>
+    </div>
+
+    <!-- Edit Script Modal -->
+    <div id="editModal">
+        <div class="modal-content">
+            <h2>Edit Your Script</h2>
+            <textarea id="scriptInput" placeholder="Paste your script here... Separate paragraphs with new lines."></textarea>
+            <div class="modal-actions">
+                <button id="cancelBtn">Cancel</button>
+                <button id="saveBtn">Save Script</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const textContainer = document.getElementById('text-container');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const editBtn = document.getElementById('editBtn');
+        const colorPicker = document.getElementById('colorPicker');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const sizeVal = document.getElementById('sizeVal');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedVal = document.getElementById('speedVal');
+
+        const editModal = document.getElementById('editModal');
+        const scriptInput = document.getElementById('scriptInput');
+        const saveBtn = document.getElementById('saveBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        let scrollInterval;
+        let isScrolling = false;
+        let exactScrollY = 0;
+        
+        // --- Setting up Edit functionality ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlScript = urlParams.get('script');
+        
+        let currentScriptText = urlScript || localStorage.getItem('priyas_teleprompter_script');
+        
+        if (urlScript) {
+            localStorage.setItem('priyas_teleprompter_script', currentScriptText);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        
+        function renderScript(text) {
+            textContainer.innerHTML = '';
+            const paragraphs = text.split('\n').filter(p => p.trim() !== '');
+            paragraphs.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'script-paragraph';
+                div.textContent = p.trim();
+                textContainer.appendChild(div);
+            });
+        }
+
+        if (currentScriptText) {
+            renderScript(currentScriptText);
+        } else {
+            const paragraphs = Array.from(document.querySelectorAll('.script-paragraph')).map(el => el.textContent);
+            currentScriptText = paragraphs.join('\n\n');
+            localStorage.setItem('priyas_teleprompter_script', currentScriptText);
+        }
+
+        editBtn.addEventListener('click', () => {
+            stopScrolling();
+            scriptInput.value = currentScriptText;
+            editModal.style.display = 'flex';
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            editModal.style.display = 'none';
+        });
+
+        saveBtn.addEventListener('click', () => {
+            currentScriptText = scriptInput.value;
+            localStorage.setItem('priyas_teleprompter_script', currentScriptText);
+            renderScript(currentScriptText);
+            editModal.style.display = 'none';
+            window.scrollTo(0, 0);
+            exactScrollY = 0;
+        });
+
+        // --- Core Scrolling logic ---
+        let speedMultiplier = parseInt(speedSlider.value);
+
+        colorPicker.addEventListener('input', (e) => {
+            document.body.style.color = e.target.value;
+        });
+
+        sizeSlider.addEventListener('input', (e) => {
+            const size = e.target.value;
+            textContainer.style.fontSize = size + 'px';
+            sizeVal.textContent = size;
+        });
+
+        speedSlider.addEventListener('input', (e) => {
+            speedMultiplier = parseInt(e.target.value);
+            speedVal.textContent = speedMultiplier;
+        });
+
+        function startScrolling() {
+            if (isScrolling) return;
+            isScrolling = true;
+            exactScrollY = window.scrollY;
+            startBtn.style.opacity = '0.5';
+            stopBtn.style.opacity = '1';
+            
+            scrollInterval = requestAnimationFrame(scrollStep);
+        }
+
+        function stopScrolling() {
+            isScrolling = false;
+            cancelAnimationFrame(scrollInterval);
+            startBtn.style.opacity = '1';
+            stopBtn.style.opacity = '0.5';
+        }
+
+        function scrollStep() {
+            if (!isScrolling) return;
+            exactScrollY += speedMultiplier * 0.05;
+            window.scrollTo(0, exactScrollY);
+            scrollInterval = requestAnimationFrame(scrollStep);
+        }
+
+        startBtn.addEventListener('click', startScrolling);
+        stopBtn.addEventListener('click', stopScrolling);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName.toLowerCase() === 'textarea' || e.target.tagName.toLowerCase() === 'input') {
+                return; // Let user type in the Edit modal normally
+            }
+            if (e.code === 'Space') {
+                e.preventDefault(); 
+                if (isScrolling) {
+                    stopScrolling();
+                } else {
+                    startScrolling();
+                }
+            } else if (e.code === 'ArrowRight') {
+                e.preventDefault();
+                let currentSpeed = parseInt(speedSlider.value);
+                if (currentSpeed < parseInt(speedSlider.max)) {
+                    speedSlider.value = currentSpeed + 1;
+                    speedSlider.dispatchEvent(new Event('input'));
+                }
+            } else if (e.code === 'ArrowLeft') {
+                e.preventDefault();
+                let currentSpeed = parseInt(speedSlider.value);
+                if (currentSpeed > parseInt(speedSlider.min)) {
+                    speedSlider.value = currentSpeed - 1;
+                    speedSlider.dispatchEvent(new Event('input'));
+                }
+            }
+        });
+
+        stopBtn.style.opacity = '0.5';
+    </script>
+</body>
+</html>

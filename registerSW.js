@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/auto-script-pro/sw.js', { scope: '/auto-script-pro/' })})}
